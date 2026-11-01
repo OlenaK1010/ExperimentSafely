@@ -1,0 +1,829 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Експериментуй безпечно</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: маршрутний лист лабораторій — липка навігація, на кожній станції сцена зліва та пульт керування справа, під ними таблиця й нотатка з безпеки. */
+:root{
+  --bg:#EEF1F6; --fg:#0E1A2B; --card:#FFFFFF; --line:#CFD7E3; --muted:#52607A; --tint:#E2E8F1;
+  --sig:#FFC400; --on-sig:#1B1500; --safe:#0F8A59; --danger:#C9242F; --info:#1B5FD0;
+  --stripe-dark:#0E1A2B; --wall:#DCE3EE; --floor:#C3CCDB; --wood:#B58B5A; --wood-dk:#8E6A42;
+  --f-display:'Unbounded','Arial Black',system-ui,sans-serif;
+  --f-body:'Onest',system-ui,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1220; --fg:#E9EEF7; --card:#121C30; --line:#25334D; --muted:#9BA9C3; --tint:#17233A;
+  --sig:#FFC400; --on-sig:#1B1500; --safe:#35D391; --danger:#FF7780; --info:#79AEFF;
+  --stripe-dark:#05080F; --wall:#16233A; --floor:#0F1A2D; --wood:#7A5A3A; --wood-dk:#5C432A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1220; --fg:#E9EEF7; --card:#121C30; --line:#25334D; --muted:#9BA9C3; --tint:#17233A;
+  --sig:#FFC400; --on-sig:#1B1500; --safe:#35D391; --danger:#FF7780; --info:#79AEFF;
+  --stripe-dark:#05080F; --wall:#16233A; --floor:#0F1A2D; --wood:#7A5A3A; --wood-dk:#5C432A; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.wrap{max-width:1060px;margin:0 auto}
+h1,h2,h3{margin:0;text-wrap:balance}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(25px,5.4vw,50px);line-height:1.08;letter-spacing:-.01em;overflow-wrap:anywhere}
+h2{font-family:var(--f-display);font-weight:500;font-size:clamp(19px,3vw,26px);line-height:1.2;letter-spacing:-.005em}
+h3{font-size:17px;font-weight:700;line-height:1.3}
+p{margin:0}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+a{color:var(--info)}
+:focus-visible{outline:3px solid var(--info);outline-offset:2px;border-radius:4px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px))) calc(-1*max(16px,env(safe-area-inset-right,0px)));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line)}
+.topin{display:flex;align-items:center;gap:14px;padding-block:10px;min-width:0}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--fg);font-family:var(--f-display);font-weight:700;font-size:11px;line-height:1.15;flex:none;text-transform:uppercase;letter-spacing:.04em}
+.brand svg{width:34px;height:34px}
+nav{display:flex;gap:4px;overflow-x:auto;min-width:0;flex:1;scrollbar-width:thin;padding-bottom:2px}
+nav a{padding:7px 12px;border-radius:999px;font-weight:600;font-size:14px;text-decoration:none;color:var(--fg);white-space:nowrap}
+nav a:hover{background:var(--tint)}
+nav a[aria-current="page"]{background:var(--sig);color:var(--on-sig)}
+#pg{flex:none;font-family:var(--f-mono);font-size:12px;font-weight:600;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted)}
+.tape{height:8px;background:repeating-linear-gradient(-45deg,var(--sig) 0 10px,var(--stripe-dark) 10px 20px)}
+
+/* views */
+.view{padding-block:28px 8px;display:grid;gap:26px}
+.vhead{display:flex;gap:16px;align-items:flex-start}
+.vhead .sign{flex:none;width:52px;height:52px}
+.vhead p{color:var(--muted);max-width:68ch;margin-top:6px}
+.lab{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:22px;align-items:start}
+.stage{min-width:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--tint)}
+canvas{display:block;width:100%;height:auto}
+.ctrl{min-width:0;display:grid;gap:14px}
+.field{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:baseline}
+.field label{font-weight:600;font-size:14px}
+.field output{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.field input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--info);margin:4px 0}
+.field select,.field input[type=text],.field input[type=number],textarea{grid-column:1/-1;width:100%;font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+textarea{resize:vertical;min-height:72px;line-height:1.45}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;cursor:pointer}
+.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:700;background:var(--sig);color:var(--on-sig)}
+.btn:hover{filter:brightness(1.06)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--tint)}
+.mini{border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:6px;width:28px;height:28px;line-height:1}
+.status{font-size:14px;color:var(--muted);min-height:2.9em}
+.status b{color:var(--fg)}
+.safe-note{position:relative;display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line);background:var(--card);padding:20px 16px 14px}
+.safe-note::before{content:"";position:absolute;inset:0 0 auto;height:6px;background:repeating-linear-gradient(-45deg,var(--sig) 0 8px,var(--stripe-dark) 8px 16px)}
+.safe-note svg{flex:none;width:40px;height:40px}
+.safe-note ul{margin:6px 0 0;padding-left:18px}
+.safe-note li{margin:2px 0}
+.cols2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
+.scroll-x{overflow-x:auto;min-width:0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700;border:1px solid var(--line)}
+.ok{color:var(--safe)} .bad{color:var(--danger)}
+.callout{border-radius:10px;padding:12px 14px;background:var(--tint);font-size:15px}
+.callout.good{border:1px solid var(--safe)} .callout.warn{border:1px solid var(--danger)}
+
+/* start */
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:28px;align-items:center;padding-block:10px}
+.hero p.lead{font-size:18px;max-width:52ch;margin-top:14px;color:var(--muted)}
+.hero .row{margin-top:20px}
+.kicker{font-family:var(--f-mono);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.signs{display:flex;justify-content:center;align-items:center;min-width:0}
+.signs svg{width:100%;max-width:340px;height:auto}
+.rules{display:grid;gap:0;border-top:1px solid var(--line)}
+.rule{display:grid;grid-template-columns:52px minmax(0,1fr);gap:16px;padding:14px 0;border-bottom:1px solid var(--line);align-items:center}
+.rule svg{width:48px;height:48px}
+.rule b{display:block}
+.rule span{color:var(--muted);font-size:15px}
+.stamp{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px dashed var(--line);color:transparent;font-weight:700;font-size:15px}
+.stamp.on{border:2px solid var(--safe);color:var(--safe);background:color-mix(in srgb,var(--safe) 14%,transparent)}
+.route a{font-weight:700;text-decoration:none}
+.route a:hover{text-decoration:underline}
+.bigstamp{font-family:var(--f-display);font-weight:700;border:3px solid var(--safe);color:var(--safe);border-radius:10px;padding:10px 16px;display:inline-block;transform:rotate(-2deg)}
+
+/* quest */
+#qsvg{display:block;width:100%;height:auto;background:var(--wall)}
+.q-wall{fill:var(--wall)} .q-floor{fill:var(--floor)} .q-top{fill:var(--wood)} .q-front{fill:var(--wood-dk)} .q-leg{fill:var(--wood-dk)}
+.q-board{fill:#1F3B35} .q-chalk{fill:#E7F2EA;font-family:var(--f-mono);font-size:26px;font-weight:600} .q-chalk.small{font-size:12px;font-weight:400}
+.hz{cursor:pointer}
+.hz .hit{fill:transparent;stroke:transparent;stroke-width:3}
+.hz:hover .hit,.hz:focus-visible .hit{stroke:var(--info);stroke-dasharray:6 4}
+.hz.hint .hit{stroke:var(--sig);stroke-width:4;stroke-dasharray:8 5}
+.mark circle{fill:var(--safe);stroke:#fff;stroke-width:2}
+.mark path{fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.mark.okk circle{fill:var(--info)}
+.qinfo{min-height:150px}
+.qinfo h3{margin-bottom:6px}
+.qinfo .why{margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:13px;background:var(--card)}
+.chip.on{border-color:var(--safe);color:var(--safe);font-weight:600}
+
+/* circuit */
+.sch{width:100%;height:auto;display:block;background:var(--tint)}
+.sch text{font-family:var(--f-body);fill:var(--fg)}
+.load{cursor:pointer}
+.load rect{fill:var(--card);stroke:var(--line);stroke-width:2}
+.load.on rect{fill:var(--sig);stroke:var(--fg)}
+.load.on text{fill:var(--on-sig)}
+.load:focus-visible rect{stroke:var(--info);stroke-width:3}
+.gauge{display:grid;gap:4px}
+.gauge .lab-r{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.bar{position:relative;height:16px;background:var(--tint);border-radius:8px;border:1px solid var(--line);margin-block:14px 16px}
+#mkCab::after{top:auto;bottom:-17px}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:7px;background:var(--info);width:0}
+.bar em{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--fg)}
+.bar em::after{content:attr(data-l);position:absolute;top:-17px;left:-4px;font-style:normal;font-size:10px;font-family:var(--f-mono);white-space:nowrap;color:var(--muted)}
+.mission{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:14px}
+.mission li{display:flex;gap:8px;align-items:flex-start}
+.mission li::before{content:"";flex:none;width:16px;height:16px;margin-top:3px;border:2px solid var(--line);border-radius:4px}
+.mission li.ok::before{background:var(--safe);border-color:var(--safe)}
+
+/* research & links */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
+.rcard{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:18px;display:grid;gap:12px;min-width:0;align-content:start}
+.rcard dl{margin:0;display:grid;gap:8px;font-size:14px}
+.rcard dt{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.rcard dd{margin:0}
+.rcard ol{margin:0;padding-left:18px}
+.rcard label{font-weight:600;font-size:14px;display:block;margin-bottom:4px}
+.link-card{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:18px;display:grid;gap:10px;align-content:start}
+.link-card ul{margin:0;padding-left:18px;font-size:14px}
+.q{border-bottom:1px solid var(--line);padding:16px 0}
+.q fieldset{border:0;margin:0;padding:0;min-width:0}
+.q legend{font-weight:700;margin-bottom:8px;padding:0}
+.q label{display:flex;gap:10px;padding:6px 0;align-items:flex-start;cursor:pointer}
+.q input{margin-top:5px;accent-color:var(--info)}
+.q .fb{margin-top:6px;font-size:14px}
+.badge{position:relative;border:2px solid var(--fg);background:var(--card);padding:26px 20px 18px;max-width:420px;display:grid;gap:8px;justify-items:start}
+.badge::before{content:"";position:absolute;inset:0 0 auto;height:10px;background:repeating-linear-gradient(-45deg,var(--sig) 0 10px,var(--stripe-dark) 10px 20px)}
+.badge .nm{font-family:var(--f-display);font-weight:700;font-size:20px;overflow-wrap:anywhere}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:40;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (max-width:820px){
+  .lab,.hero,.cols2{grid-template-columns:minmax(0,1fr)}
+  .signs{order:-1}.signs svg{max-width:220px}
+  .brand span{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="s-doc" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1F5FD0"/><rect x="15" y="10" width="18" height="28" rx="2" fill="#fff"/><path d="M19 17h10M19 22h10M19 27h6" stroke="#1F5FD0" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="s-goggles" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#1F5FD0"/><circle cx="16.5" cy="25" r="6.5" fill="none" stroke="#fff" stroke-width="3"/><circle cx="31.5" cy="25" r="6.5" fill="none" stroke="#fff" stroke-width="3"/><path d="M23 25h2M10 24l-3-1.5M38 24l3-1.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></symbol>
+    <symbol id="s-bolt" viewBox="0 0 48 48"><polygon points="24,4 46,42 2,42" fill="#FFC400" stroke="#111" stroke-width="3" stroke-linejoin="round"/><polygon points="27,15 18,29 24,29 21,38 31,23 25,23" fill="#111"/></symbol>
+    <symbol id="s-flame" viewBox="0 0 48 48"><polygon points="24,4 46,42 2,42" fill="#FFC400" stroke="#111" stroke-width="3" stroke-linejoin="round"/><path d="M24 15c1 5 7 8 7 15a7 7 0 0 1-14 0c0-4 2-6 4-8 0 2 1 3 2 3 1-3 1-6 1-10z" fill="#111"/></symbol>
+    <symbol id="s-eye" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20.5" fill="#fff" stroke="#D6303A" stroke-width="5"/><path d="M10 24q14-12 28 0q-14 12-28 0z" fill="none" stroke="#111" stroke-width="2.5"/><circle cx="24" cy="24" r="4" fill="#111"/><path d="M10 38L38 10" stroke="#D6303A" stroke-width="5" stroke-linecap="round"/></symbol>
+    <symbol id="s-hot" viewBox="0 0 48 48"><polygon points="24,4 46,42 2,42" fill="#FFC400" stroke="#111" stroke-width="3" stroke-linejoin="round"/><path d="M17 36c3-3-3-5 0-8s-3-5 0-8M25 36c3-3-3-5 0-8s-3-5 0-8M33 36c3-3-3-5 0-8s-3-5 0-8" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" transform="translate(-4 2) scale(.9)"/></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap topin">
+    <a class="brand" href="#start" aria-label="Експериментуй безпечно, на головну"><svg aria-hidden="true"><use href="#s-bolt"/></svg><span>Експериментуй<br>безпечно</span></a>
+    <nav id="nav" aria-label="Розділи">
+      <a href="#start" data-v="start">Старт</a>
+      <a href="#quest" data-v="quest">Квест</a>
+      <a href="#pendulum" data-v="pendulum">Маятник</a>
+      <a href="#circuit" data-v="circuit">Коло й автомат</a>
+      <a href="#light" data-v="light">Заломлення</a>
+      <a href="#heat" data-v="heat">Гаряча вода</a>
+      <a href="#research" data-v="research">Дослідження</a>
+      <a href="#links" data-v="links">Симуляції та відео</a>
+      <a href="#test" data-v="test">Тест</a>
+    </nav>
+    <span id="pg" title="Отримані штампи" aria-label="Штампи">0/7</span>
+  </div>
+  <div class="tape" aria-hidden="true"></div>
+</header>
+
+<main class="wrap">
+
+<!-- START -->
+<section id="v-start" class="view" hidden>
+  <div class="hero">
+    <div>
+      <div class="kicker">STEM-тиждень · фізика · 8–11 класи</div>
+      <h1>Експериментуй безпечно</h1>
+      <p class="lead">Шість віртуальних станцій, чотири домашні дослідження і тест. Тут можна перегріти кабель, вибити автомат і пролити окріп, а в житті цього робити не варто.</p>
+      <div class="row"><a class="btn" href="#quest" style="text-decoration:none">Почати з квесту</a><a class="btn ghost" href="#links" style="text-decoration:none">Симуляції та відео</a></div>
+    </div>
+    <div class="signs" aria-hidden="true">
+      <svg viewBox="0 0 300 260"><use href="#s-bolt" x="10" y="20" width="150" height="150" transform="rotate(-6 85 95)"/><use href="#s-flame" x="140" y="10" width="140" height="140" transform="rotate(7 210 80)"/><use href="#s-eye" x="80" y="125" width="130" height="130"/><use href="#s-goggles" x="195" y="150" width="90" height="90"/></svg>
+    </div>
+  </div>
+
+  <div>
+    <h2>П’ять правил на кожну станцію</h2>
+    <div class="rules" style="margin-top:14px">
+      <div class="rule"><svg aria-hidden="true"><use href="#s-doc"/></svg><div><b>Спочатку інструкція й план</b><span>Що вимірюємо, чим, і що може піти не так. Невідомий прилад не вмикаємо.</span></div></div>
+      <div class="rule"><svg aria-hidden="true"><use href="#s-goggles"/></svg><div><b>Захист до початку роботи</b><span>Окуляри, зібране волосся, закриті рукави, чисте й сухе робоче місце.</span></div></div>
+      <div class="rule"><svg aria-hidden="true"><use href="#s-bolt"/></svg><div><b>Вода й електрика не сумісні</b><span>Мокрі руки, рідини біля розеток, пошкоджені кабелі. У школі працюємо з низькою напругою.</span></div></div>
+      <div class="rule"><svg aria-hidden="true"><use href="#s-flame"/></svg><div><b>Вогонь і гаряча вода тільки з учителем</b><span>Окріп і відкритий вогонь поза межами домашніх завдань. Склянки ставимо далеко від краю.</span></div></div>
+      <div class="rule"><svg aria-hidden="true"><use href="#s-eye"/></svg><div><b>Очі, смак і нюх лишаємо в спокої</b><span>Не світимо лазером в очі, не куштуємо й не нюхаємо речовини. При сумніві кажемо вчителеві.</span></div></div>
+    </div>
+  </div>
+
+  <div>
+    <h2>Маршрутний лист</h2>
+    <p class="muted" style="margin:6px 0 12px;max-width:62ch">Штамп з’являється, коли виконано головну умову станції. Прогрес зберігається в цьому браузері.</p>
+    <div class="scroll-x"><table class="route">
+      <thead><tr><th>Станція</th><th>Клас</th><th>≈ хв</th><th>Що відпрацьовуємо</th><th>Штамп</th></tr></thead>
+      <tbody>
+        <tr><td><a href="#quest">Квест «Знайди ризики»</a></td><td>8–11</td><td class="num">10</td><td>Розпізнавання небезпек у кабінеті фізики</td><td><span class="stamp" data-stamp="quest">✓</span></td></tr>
+        <tr><td><a href="#pendulum">Маятник</a></td><td>9–11</td><td class="num">20</td><td>T²(L), похибки вимірювання, g на різних планетах</td><td><span class="stamp" data-stamp="pendulum">✓</span></td></tr>
+        <tr><td><a href="#circuit">Коло й автомат</a></td><td>8–10</td><td class="num">15</td><td>P = U·I, перевантаження, захист кабелю</td><td><span class="stamp" data-stamp="circuit">✓</span></td></tr>
+        <tr><td><a href="#light">Заломлення світла</a></td><td>8–10</td><td class="num">15</td><td>Закон заломлення, повне відбиття, безпека з лазером</td><td><span class="stamp" data-stamp="light">✓</span></td></tr>
+        <tr><td><a href="#heat">Гаряча вода</a></td><td>8–9</td><td class="num">15</td><td>Тепловий баланс, охолодження, час до опіку</td><td><span class="stamp" data-stamp="heat">✓</span></td></tr>
+        <tr><td><a href="#research">Дослідницьке завдання</a></td><td>8–11</td><td class="num">45+</td><td>Гіпотеза, дані, висновок, звіт</td><td><span class="stamp" data-stamp="research">✓</span></td></tr>
+        <tr><td><a href="#test">Тест</a></td><td>8–11</td><td class="num">10</td><td>Підсумок: 7 з 9 правильних</td><td><span class="stamp" data-stamp="test">✓</span></td></tr>
+      </tbody>
+    </table></div>
+    <div id="allDone" hidden style="margin-top:16px"><span class="bigstamp">Маршрут пройдено</span></div>
+  </div>
+</section>
+
+<!-- QUEST -->
+<section id="v-quest" class="view" hidden>
+  <div class="vhead"><svg class="sign" aria-hidden="true"><use href="#s-eye"/></svg>
+    <div><h2>Квест «Знайди ризики»</h2><p>У кабінеті сім небезпечних місць і три речі, які стоять правильно. Натискай на предмети (або Tab і Enter), читай пояснення, знаходь усі ризики.</p></div></div>
+  <div class="lab">
+    <div class="stage">
+<svg id="qsvg" viewBox="0 0 800 440" role="group" aria-label="Ілюстрація: кабінет фізики з небезпечними місцями">
+  <rect width="800" height="300" class="q-wall"/><rect y="300" width="800" height="140" class="q-floor"/>
+  <rect x="290" y="30" width="220" height="104" rx="4" class="q-board"/>
+  <text x="400" y="78" text-anchor="middle" class="q-chalk">I = P / U</text>
+  <text x="400" y="108" text-anchor="middle" class="q-chalk small">безпека починається з розрахунку</text>
+  <rect x="30" y="300" width="740" height="22" class="q-top"/><rect x="30" y="322" width="740" height="16" class="q-front"/>
+  <rect x="60" y="338" width="16" height="102" class="q-leg"/><rect x="724" y="338" width="16" height="102" class="q-leg"/>
+
+  <g class="hz" data-hz="mug" tabindex="0" role="button" aria-label="Чашка з водою біля розетки">
+    <rect x="84" y="262" width="30" height="30" rx="4" fill="#F4F5F8" stroke="#5B667A" stroke-width="2"/><rect x="92" y="270" width="4" height="9" fill="#333"/><rect x="102" y="270" width="4" height="9" fill="#333"/>
+    <rect x="124" y="268" width="34" height="32" rx="4" fill="#E9EAF0" stroke="#5B667A" stroke-width="2"/><path d="M158 276h8a6 6 0 0 1 0 14h-8" fill="none" stroke="#5B667A" stroke-width="3"/>
+    <ellipse cx="118" cy="285" rx="4" ry="6" fill="#6FB1F0"/><ellipse cx="110" cy="297" rx="5" ry="3" fill="#6FB1F0"/><ellipse cx="100" cy="298" rx="7" ry="2.5" fill="#6FB1F0"/>
+    <rect class="hit" x="78" y="252" width="98" height="50" rx="6"/></g>
+
+  <g class="hz" data-hz="strip" tabindex="0" role="button" aria-label="Перевантажений подовжувач">
+    <rect x="215" y="284" width="120" height="16" rx="4" fill="#2B3445"/><g fill="#6A778E"><rect x="224" y="289" width="14" height="6"/><rect x="244" y="289" width="14" height="6"/><rect x="264" y="289" width="14" height="6"/><rect x="284" y="289" width="14" height="6"/><rect x="304" y="289" width="14" height="6"/></g>
+    <rect x="226" y="262" width="10" height="22" fill="#D8DCE6" stroke="#333"/><rect x="266" y="262" width="10" height="22" fill="#D8DCE6" stroke="#333"/><rect x="306" y="262" width="10" height="22" fill="#D8DCE6" stroke="#333"/>
+    <path d="M231 262c0-26 30-30 20-52M271 262c0-30-10-36 6-60M311 262c0-24 24-24 26-48" fill="none" stroke="#333" stroke-width="3"/>
+    <polygon points="338,262 328,276 335,276 330,288 345,270 337,270" fill="#FFC400" stroke="#C47A00"/>
+    <rect class="hit" x="206" y="196" width="146" height="108" rx="6"/></g>
+
+  <g class="hz" data-hz="wire" tabindex="0" role="button" aria-label="Кабель із пошкодженою ізоляцією">
+    <path d="M338 293c14 0 20 3 34 3" fill="none" stroke="#3A4150" stroke-width="6" stroke-linecap="round"/>
+    <path d="M372 296l22-6M372 296l24 1M372 296l20 7" stroke="#E08A2E" stroke-width="2.4" stroke-linecap="round"/>
+    <rect class="hit" x="350" y="276" width="62" height="30" rx="6"/></g>
+
+  <g class="hz" data-hz="burner" tabindex="0" role="button" aria-label="Спиртівка біля паперу">
+    <rect x="452" y="282" width="34" height="18" rx="4" fill="#A9D3EE" fill-opacity=".7" stroke="#5B667A" stroke-width="2"/><rect x="466" y="274" width="6" height="8" fill="#5B667A"/>
+    <path d="M469 274c-9-8-4-16 0-22 2 6 10 8 7 16 6-2 8-8 7-12 12 12 2 22-14 18z" fill="#FF8A1F"/><path d="M470 272c-4-4-2-8 0-11 2 4 6 5 4 11z" fill="#FFD84A"/>
+    <polygon points="486,288 542,282 548,300 488,300" fill="#fff" stroke="#9AA3B5" stroke-width="2"/><path d="M500 292h36M500 296h24" stroke="#C9CFDB" stroke-width="2"/>
+    <path d="M490 266c-6-8 6-10 0-18" fill="none" stroke="#8D96A8" stroke-width="2" stroke-linecap="round"/>
+    <rect class="hit" x="444" y="236" width="112" height="68" rx="6"/></g>
+
+  <g class="hz" data-hz="beaker" tabindex="0" role="button" aria-label="Гаряча склянка на краю стола">
+    <path d="M747 256v44h38v-44" fill="none" stroke="#5B667A" stroke-width="3"/><rect x="749" y="270" width="34" height="28" fill="#E8613C" fill-opacity=".75"/>
+    <path d="M756 250c-6-8 6-10 0-18M766 250c-6-8 6-10 0-18M776 250c-6-8 6-10 0-18" fill="none" stroke="#9AA3B5" stroke-width="2.4" stroke-linecap="round"/>
+    <rect class="hit" x="736" y="224" width="58" height="80" rx="6"/></g>
+
+  <g class="hz" data-hz="bag" tabindex="0" role="button" aria-label="Рюкзак у проході">
+    <ellipse cx="605" cy="420" rx="52" ry="7" fill="#000" fill-opacity=".18"/><rect x="570" y="374" width="70" height="46" rx="14" fill="#3B6FB6"/><rect x="582" y="396" width="46" height="18" rx="6" fill="#2D5894"/><path d="M586 376c0-14 38-14 38 0" fill="none" stroke="#2D5894" stroke-width="5"/>
+    <rect class="hit" x="560" y="362" width="90" height="62" rx="6"/></g>
+
+  <g class="hz" data-hz="puddle" tabindex="0" role="button" aria-label="Калюжа і кабель на підлозі">
+    <ellipse cx="250" cy="408" rx="82" ry="14" fill="#7FB3E6" fill-opacity=".65"/>
+    <path d="M226 300c2 30 14 50 22 66 6 14 10 28 10 38" fill="none" stroke="#2F3542" stroke-width="4" stroke-linecap="round"/><rect x="252" y="402" width="16" height="10" rx="2" fill="#2F3542"/>
+    <rect class="hit" x="160" y="340" width="184" height="90" rx="6"/></g>
+
+  <g class="hz" data-hz="ext" tabindex="0" role="button" aria-label="Вогнегасник на стіні">
+    <rect x="618" y="168" width="26" height="72" rx="9" fill="#D6303A"/><rect x="623" y="152" width="16" height="16" rx="3" fill="#333"/><path d="M639 158h12v14" fill="none" stroke="#333" stroke-width="3"/><rect x="620" y="190" width="22" height="22" fill="#fff" fill-opacity=".85"/>
+    <rect class="hit" x="608" y="146" width="52" height="98" rx="6"/></g>
+
+  <g class="hz" data-hz="goggles" tabindex="0" role="button" aria-label="Захисні окуляри на столі">
+    <circle cx="604" cy="288" r="9" fill="#BFE3FF" fill-opacity=".7" stroke="#111" stroke-width="3"/><circle cx="628" cy="288" r="9" fill="#BFE3FF" fill-opacity=".7" stroke="#111" stroke-width="3"/><path d="M613 288h6M595 287l-8 3M637 287l8 3" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+    <rect class="hit" x="580" y="272" width="80" height="28" rx="6"/></g>
+
+  <g class="hz" data-hz="kit" tabindex="0" role="button" aria-label="Аптечка на стіні">
+    <rect x="696" y="140" width="62" height="46" rx="4" fill="#fff" stroke="#2A8A5C" stroke-width="3"/><rect x="722" y="148" width="10" height="30" fill="#D6303A"/><rect x="712" y="158" width="30" height="10" fill="#D6303A"/>
+    <rect class="hit" x="688" y="132" width="78" height="62" rx="6"/></g>
+</svg>
+    </div>
+    <div class="ctrl">
+      <div class="callout" id="qcount" aria-live="polite">Знайдено ризиків: <b>0</b> з 7</div>
+      <div class="qinfo callout" id="qinfo" aria-live="polite"><h3>Що тут не так?</h3><p class="muted">Натисни на місце в кабінеті, яке здається небезпечним. Не всі предмети небезпечні: деякі стоять саме так, як треба.</p></div>
+      <div class="chips" id="qchips" aria-label="Знайдені ризики"></div>
+      <div class="row"><button class="btn ghost" id="qhint" type="button">Підказка</button><button class="btn ghost" id="qreset" type="button">Почати знову</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- PENDULUM -->
+<section id="v-pendulum" class="view" hidden>
+  <div class="vhead"><svg class="sign" aria-hidden="true"><use href="#s-goggles"/></svg>
+    <div><h2>Віртуальна лабораторія: маятник</h2><p>Змінюй довжину нитки, кут і планету. Секундомір має людську похибку, тому кожен вимір трохи відрізняється. Збери три довжини, і лабораторія знайде g з графіка.</p></div></div>
+  <div class="lab">
+    <div class="stage"><canvas id="pcv" aria-label="Анімація математичного маятника"></canvas></div>
+    <div class="ctrl">
+      <div class="field"><label for="pL">Довжина нитки L</label><output id="pLo" for="pL">1,00 м</output><input id="pL" type="range" min="0.2" max="2" step="0.05" value="1"></div>
+      <div class="field"><label for="pA">Початковий кут θ₀</label><output id="pAo" for="pA">20°</output><input id="pA" type="range" min="5" max="60" step="1" value="20"></div>
+      <div class="field"><label for="pG">Де проводимо дослід</label><select id="pG"><option value="9.81">Земля, g = 9,81 м/с²</option><option value="1.62">Місяць, g = 1,62 м/с²</option><option value="3.71">Марс, g = 3,71 м/с²</option><option value="24.79">Юпітер, g = 24,79 м/с²</option></select></div>
+      <div class="field"><label for="pS">Швидкість анімації</label><select id="pS"><option value="1">×1 (реальний час)</option><option value="3" selected>×3</option><option value="6">×6</option></select></div>
+      <div class="row"><button class="btn" id="pGo" type="button">Виміряти 10 коливань</button><button class="btn ghost" id="pStop" type="button">Скинути</button><button class="btn ghost" id="pAdd" type="button" disabled>Записати вимір</button></div>
+      <p class="status" id="pSt" aria-live="polite">Натисни «Виміряти 10 коливань». Маятник відпускають без поштовху.</p>
+    </div>
+  </div>
+  <div class="safe-note"><svg aria-hidden="true"><use href="#s-goggles"/></svg><div><h3>Як це роблять у реальності</h3><ul><li>Нитку закріплюють у штативі надійно, вантаж не важчий за 100 г.</li><li>Кут відхилення не більше 15°, не стій у площині коливань.</li><li>Штатив ставлять так, щоб він не міг перекинутися.</li></ul></div></div>
+  <div class="cols2">
+    <div><h3 style="margin-bottom:8px">Таблиця вимірів</h3><div class="scroll-x"><table><thead><tr><th>L, м</th><th>t₁₀, с</th><th>T, с</th><th>T², с²</th><th>θ₀</th><th></th></tr></thead><tbody id="ptb"></tbody></table></div></div>
+    <div><h3 style="margin-bottom:8px">Графік T² від L</h3><div class="stage"><canvas id="pfit" aria-label="Графік залежності квадрата періоду від довжини"></canvas></div></div>
+  </div>
+  <div class="callout" id="pRes" aria-live="polite">Для оцінки g потрібно хоча б два виміри. Формула: T² = (4π²/g)·L.</div>
+</section>
+
+<!-- CIRCUIT -->
+<section id="v-circuit" class="view" hidden>
+  <div class="vhead"><svg class="sign" aria-hidden="true"><use href="#s-bolt"/></svg>
+    <div><h2>Віртуальна лабораторія: коло й автомат</h2><p>Вмикай прилади в одне коло 230 В. Автомат має захищати найслабшу ланку, тобто кабель. Подивись, що буде, коли це не так. Це лише модель, у життя таке не переносимо.</p></div></div>
+  <div class="lab">
+    <div class="stage">
+<svg class="sch" id="sch" viewBox="0 0 660 300" role="img" aria-label="Схема: мережа, автомат, подовжувач і шість приладів">
+  <circle cx="46" cy="150" r="28" fill="var(--card)" stroke="var(--fg)" stroke-width="2.5"/><text x="46" y="148" text-anchor="middle" font-size="14" font-weight="700">230</text><text x="46" y="164" text-anchor="middle" font-size="12">В</text>
+  <line x1="74" y1="150" x2="120" y2="150" stroke="var(--fg)" stroke-width="4"/>
+  <rect x="120" y="112" width="74" height="76" rx="8" fill="var(--card)" stroke="var(--fg)" stroke-width="2.5"/>
+  <line id="lever" x1="157" y1="150" x2="157" y2="124" stroke="var(--fg)" stroke-width="6" stroke-linecap="round"/><circle cx="157" cy="150" r="6" fill="var(--fg)"/>
+  <text id="brkLbl" x="157" y="178" text-anchor="middle" font-size="13" font-weight="700" font-family="JetBrains Mono,monospace">16 А</text>
+  <text x="157" y="104" text-anchor="middle" font-size="11" style="fill:var(--muted)">автомат</text>
+  <path id="cab" d="M194 150H630" fill="none" stroke="#7B8798" stroke-width="9" stroke-linecap="round"/>
+  <path id="flow" d="M194 150H630" fill="none" stroke="var(--sig)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 16" opacity="0"/>
+  <text x="412" y="132" text-anchor="middle" font-size="11" style="fill:var(--muted)" id="cabLbl">подовжувач 1,5 мм²</text>
+  <g id="cload"></g>
+  <g id="fire" hidden><polygon points="410,150 392,120 404,126 410,100 424,122 436,114 428,150" fill="#FF6A1A"/><polygon points="410,150 402,132 410,122 418,134 414,150" fill="#FFD84A"/></g>
+</svg>
+    </div>
+    <div class="ctrl">
+      <div class="field"><label for="cBr">Автомат (номінальний струм)</label><select id="cBr"><option value="6">6 А</option><option value="10">10 А</option><option value="16" selected>16 А</option><option value="25">25 А</option></select></div>
+      <div class="field"><label for="cCab">Переріз жил подовжувача</label><select id="cCab"><option value="0.75">0,75 мм² (≈ 6 А)</option><option value="1.5" selected>1,5 мм² (≈ 16 А)</option><option value="2.5">2,5 мм² (≈ 25 А)</option></select></div>
+      <div class="gauge"><div class="lab-r"><span>Струм у колі</span><span class="mono" id="gI">0,5 А</span></div><div class="bar"><i id="bI"></i><em id="mkBr" data-l="автомат"></em><em id="mkCab" data-l="кабель"></em></div></div>
+      <div class="gauge"><div class="lab-r"><span>Температура кабелю</span><span class="mono" id="gT">25 °C</span></div><div class="bar"><i id="bT" style="background:var(--danger)"></i><em id="mkT" data-l="межа 70 °C"></em></div></div>
+      <div class="gauge"><div class="lab-r"><span>Нагрів біметалевої пластини автомата</span><span class="mono" id="gH">0 %</span></div><div class="bar"><i id="bH" style="background:var(--sig)"></i></div></div>
+      <div class="row"><button class="btn" id="cRe" type="button">Увімкнути автомат і замінити кабель</button></div>
+      <ul class="mission" id="cMs"><li id="m1">Побачити, як автомат вимикає перевантажене коло до перегріву кабелю</li><li id="m2">Побачити, як кабель перегрівається, коли автомат завеликий для нього</li></ul>
+    </div>
+  </div>
+  <div class="callout" id="cVerd" aria-live="polite">Натискай на прилади на схемі, щоб увімкнути чи вимкнути.</div>
+  <div class="safe-note"><svg aria-hidden="true"><use href="#s-bolt"/></svg><div><h3>Що запам’ятати</h3><ul><li>I = P / U. Чайник 2000 Вт при 230 В споживає близько 8,7 А.</li><li>Автомат не повинен мати більший струм, ніж допускає найслабша ділянка проводки.</li><li>Значення допустимого струму кабелів тут орієнтовні, для навчальної моделі.</li></ul></div></div>
+</section>
+
+<!-- LIGHT -->
+<section id="v-light" class="view" hidden>
+  <div class="vhead"><svg class="sign" aria-hidden="true"><use href="#s-eye"/></svg>
+    <div><h2>Віртуальна лабораторія: заломлення світла</h2><p>Лазерний промінь переходить між двома середовищами. У вільному режимі досліджуй закон заломлення й повне відбиття. У режимі «Загадкова рідина» знайди показник заломлення за вимірами.</p></div></div>
+  <div class="lab">
+    <div class="stage"><canvas id="lcv" aria-label="Хід променя через межу двох середовищ"></canvas></div>
+    <div class="ctrl">
+      <div class="row" role="group" aria-label="Режим"><button class="btn" id="lmFree" type="button">Вільне дослідження</button><button class="btn ghost" id="lmMys" type="button">Загадкова рідина</button></div>
+      <div id="lFree" style="display:grid;gap:14px">
+        <div class="field"><label for="ln1">Верхнє середовище</label><select id="ln1"></select></div>
+        <div class="field"><label for="ln2">Нижнє середовище</label><select id="ln2"></select></div>
+        <div class="row"><button class="btn ghost" id="lTir" type="button">Показати повне відбиття</button></div>
+      </div>
+      <div id="lMys" style="display:none;gap:14px">
+        <p class="status">Зверху повітря (n = 1,00). Знизу рідина з невідомим n. Кут β на транспортирі округлено до 1°.</p>
+        <div class="row"><button class="btn ghost" id="lRec" type="button">Записати вимір</button><button class="btn ghost" id="lNew" type="button">Нова рідина</button></div>
+        <div class="scroll-x"><table><thead><tr><th>α</th><th>β</th><th>sin α</th><th>sin β</th><th>n</th></tr></thead><tbody id="ltb"></tbody></table></div>
+        <div class="field"><label for="lGuess">Твоя відповідь: n =</label><input id="lGuess" type="number" step="0.01" min="1" max="2.5" placeholder="наприклад, 1,42"></div>
+        <div class="row"><button class="btn" id="lCheck" type="button">Перевірити</button></div>
+        <p class="status" id="lMsg" aria-live="polite"></p>
+      </div>
+      <div class="field"><label for="lA">Кут падіння α</label><output id="lAo" for="lA">45°</output><input id="lA" type="range" min="0" max="89" step="1" value="45"></div>
+      <div class="callout mono" id="lOut" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="safe-note"><svg aria-hidden="true"><use href="#s-eye"/></svg><div><h3>Правила роботи з лазерною указкою</h3><ul><li>Використовуй указки класу 1–2 (до 1 мВт) і лише з дозволу вчителя.</li><li>Ніколи не дивись у промінь і не направляй його на людей та тварин.</li><li>Відбиття від дзеркала, скла чи води так само небезпечне для очей. Прибери блискучі речі з траєкторії.</li></ul></div></div>
+</section>
+
+<!-- HEAT -->
+<section id="v-heat" class="view" hidden>
+  <div class="vhead"><svg class="sign" aria-hidden="true"><use href="#s-hot"/></svg>
+    <div><h2>Віртуальна лабораторія: гаряча вода</h2><p>Спершу змішай гарячу й холодну воду і підбери безпечну температуру. Потім порівняй, як швидко вода охолоджується у відкритій чашці, під кришкою й у термосі.</p></div></div>
+  <div class="lab">
+    <div class="stage"><canvas id="hcv" aria-label="Змішування гарячої та холодної води"></canvas></div>
+    <div class="ctrl">
+      <div class="field"><label for="hM1">Гаряча вода, маса</label><output id="hM1o" for="hM1">250 г</output><input id="hM1" type="range" min="50" max="500" step="10" value="250"></div>
+      <div class="field"><label for="hT1">Гаряча вода, температура</label><output id="hT1o" for="hT1">70 °C</output><input id="hT1" type="range" min="40" max="100" step="1" value="70"></div>
+      <div class="field"><label for="hM2">Холодна вода, маса</label><output id="hM2o" for="hM2">250 г</output><input id="hM2" type="range" min="50" max="500" step="10" value="250"></div>
+      <div class="field"><label for="hT2">Холодна вода, температура</label><output id="hT2o" for="hT2">15 °C</output><input id="hT2" type="range" min="5" max="30" step="1" value="15"></div>
+      <div class="callout" id="hRes" aria-live="polite"></div>
+      <p class="status"><b>Місія.</b> Отримай не менше 200 г води з температурою 36–42 °C. Це комфортно для рук і безпечно.</p>
+    </div>
+  </div>
+  <div class="cols2">
+    <div>
+      <h3 style="margin-bottom:8px">Час до опіку шкіри (орієнтовно)</h3>
+      <div class="scroll-x"><table><thead><tr><th>Вода, °C</th><th>Опік приблизно за</th></tr></thead><tbody>
+        <tr><td class="num">49</td><td>≈ 10 хв</td></tr><tr><td class="num">54</td><td>≈ 30 с</td></tr><tr><td class="num">60</td><td>≈ 5 с</td></tr><tr><td class="num">65</td><td>≈ 2 с</td></tr><tr><td class="num">71 і більше</td><td>≈ 1 с</td></tr></tbody></table></div>
+      <p class="muted" style="font-size:13px;margin-top:6px">Дитяча шкіра тонша, тому вона обпікається швидше.</p>
+    </div>
+    <div class="safe-note"><svg aria-hidden="true"><use href="#s-hot"/></svg><div><h3>Безпека з гарячою водою</h3><ul><li>Окріп наливає дорослий, ємність стоїть на рівній поверхні далеко від краю.</li><li>Не нахиляйся над парою, ручки чашок повертай у безпечний бік.</li><li>Для домашніх дослідів бери воду не гарячішу за 60 °C.</li></ul></div></div>
+  </div>
+  <div>
+    <h3 style="margin-bottom:8px">Охолодження за законом Ньютона</h3>
+    <div class="lab" style="margin-top:10px">
+      <div class="stage"><canvas id="ccv" aria-label="Графік охолодження води"></canvas></div>
+      <div class="ctrl">
+        <div class="field"><label for="kT0">Початкова температура</label><output id="kT0o" for="kT0">90 °C</output><input id="kT0" type="range" min="60" max="100" step="1" value="90"></div>
+        <div class="field"><label for="kTa">Температура кімнати</label><output id="kTao" for="kTa">22 °C</output><input id="kTa" type="range" min="15" max="30" step="1" value="22"></div>
+        <div id="kLeg" class="status"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESEARCH -->
+<section id="v-research" class="view" hidden>
+  <div class="vhead"><svg class="sign" aria-hidden="true"><use href="#s-doc"/></svg>
+    <div><h2>Дослідницькі завдання</h2><p>Чотири безпечні дослідження для дому чи класу. Обери одне, заповни гіпотезу, результати й висновок, потім скопіюй звіт. Чернетки зберігаються в цьому браузері.</p></div></div>
+  <div class="cards" id="rcards"></div>
+  <div class="cols2">
+    <div><h3 style="margin-bottom:8px">Критерії оцінювання звіту</h3>
+      <div class="scroll-x"><table><thead><tr><th>Критерій</th><th>Що перевіряємо</th></tr></thead><tbody>
+        <tr><td>Гіпотеза</td><td>Є передбачення, яке можна перевірити вимірюванням</td></tr>
+        <tr><td>Безпека</td><td>Названо ризики й спосіб їх уникнути</td></tr>
+        <tr><td>Дані</td><td>Не менше п’яти вимірів, є одиниці й похибка</td></tr>
+        <tr><td>Висновок</td><td>Спирається на дані, чесно називає, що не вдалося</td></tr></tbody></table></div></div>
+    <div class="callout">Порада вчителю: проси учнів спершу пройти відповідну віртуальну станцію. Вони порівнюють власні виміри зі змодельованими й бачать, звідки береться розбіжність.</div>
+  </div>
+</section>
+
+<!-- LINKS -->
+<section id="v-links" class="view" hidden>
+  <div class="vhead"><svg class="sign" aria-hidden="true"><use href="#s-doc"/></svg>
+    <div><h2>Симуляції та відео</h2><p>Зовнішні ресурси відкриваються в новій вкладці. Нижче кожної симуляції є три запитання для дослідження.</p></div></div>
+  <h3>Онлайн-симуляції PhET (безкоштовні, українською)</h3>
+  <div class="cards" id="phet"></div>
+  <h3>Відео для обговорення</h3>
+  <p class="muted" style="max-width:66ch">Посилання нижче відкривають пошук відео за темою. Перед показом у класі перегляньте ролик сам і перевірте, що він відповідає віку учнів і не показує небезпечних повторень.</p>
+  <div class="cards" id="vids"></div>
+</section>
+
+<!-- TEST -->
+<section id="v-test" class="view" hidden>
+  <div class="vhead"><svg class="sign" aria-hidden="true"><use href="#s-doc"/></svg>
+    <div><h2>Тест «Безпечний експериментатор»</h2><p>Дев’ять запитань за матеріалами станцій. Щоб отримати бейдж, потрібно 7 правильних відповідей.</p></div></div>
+  <form id="tform" onsubmit="return false"><div id="tq"></div>
+    <div class="row" style="margin-top:16px"><button class="btn" id="tGo" type="button">Перевірити відповіді</button><button class="btn ghost" id="tRe" type="button">Спробувати знову</button></div></form>
+  <div class="callout" id="tRes" aria-live="polite" hidden></div>
+  <div id="tBadge" hidden>
+    <div class="field" style="max-width:420px;margin-bottom:12px"><label for="tName">Ім’я для бейджа</label><input id="tName" type="text" maxlength="40" placeholder="Твоє ім’я"></div>
+    <div class="badge"><svg width="44" height="44" aria-hidden="true"><use href="#s-goggles"/></svg><div class="muted mono" style="font-size:12px;letter-spacing:.1em">STEM-ТИЖДЕНЬ · ЕКСПЕРИМЕНТУЙ БЕЗПЕЧНО</div><div class="nm" id="tNm">Безпечний експериментатор</div><div id="tSc" class="muted"></div></div>
+  </div>
+</section>
+
+<footer><p style="margin-bottom:6px"><b>Автор: Олена Корж</b></p>Усі симуляції навчальні. Числові дані про опіки та допустимі струми орієнтовні й призначені для освітніх цілей, а не для проєктування електромереж.</footer>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+var NS='http://www.w3.org/2000/svg';
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var fmt=function(v,d){return Number(v).toFixed(d==null?2:d).replace('.',',')};
+var clamp=function(v,a,b){return Math.min(b,Math.max(a,v))};
+var gauss=function(){var u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+function TH(){var s=getComputedStyle(document.documentElement);var g=function(n){return s.getPropertyValue(n).trim()};
+  return{fg:g('--fg'),muted:g('--muted'),line:g('--line'),card:g('--card'),tint:g('--tint'),sig:g('--sig'),safe:g('--safe'),danger:g('--danger'),info:g('--info')}}
+function setupCanvas(c,w,h){var d=Math.min(window.devicePixelRatio||1,2);c.width=w*d;c.height=h*d;var x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return x}
+function bindRange(id,fn,out){var el=$('#'+id),o=$('#'+id+'o');var f=function(){var v=parseFloat(el.value);if(o)o.textContent=out(v);fn(v)};el.addEventListener('input',f);f();return el}
+
+/* ---------- прогрес, штампи, повідомлення ---------- */
+var KEY='stem-safe-2026',prog={};
+try{prog=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){prog={}}
+var SAVE=function(){try{localStorage.setItem(KEY,JSON.stringify(prog))}catch(e){}};
+var LABEL={quest:'Квест ризиків',pendulum:'Маятник',circuit:'Коло й автомат',light:'Заломлення',heat:'Гаряча вода',research:'Дослідження',test:'Тест'};
+var toastT;
+function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show')},2600)}
+function renderStamps(){var n=0;Object.keys(LABEL).forEach(function(k){var on=!!prog[k];if(on)n++;$$('[data-stamp="'+k+'"]').forEach(function(s){s.classList.toggle('on',on)})});
+  $('#pg').textContent=n+'/7';$('#allDone').hidden=n<7}
+function done(k){if(prog[k])return;prog[k]=1;SAVE();renderStamps();toast('Штамп: '+LABEL[k])}
+
+/* ---------- маршрутизатор ---------- */
+var VIEWS=['start','quest','pendulum','circuit','light','heat','research','links','test'],cur='start';
+function route(){var h=location.hash.slice(1);if(VIEWS.indexOf(h)<0)h='start';cur=h;
+  VIEWS.forEach(function(v){$('#v-'+v).hidden=v!==h});
+  $$('#nav a').forEach(function(a){if(a.dataset.v===h)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  window.scrollTo(0,0);redrawStatic()}
+window.addEventListener('hashchange',route);
+
+/* ================= КВЕСТ ================= */
+var HZ={
+ mug:{t:'Чашка з водою біля розетки',why:'Вода проводить струм. Бризки на розетці чи подовжувачі спричиняють коротке замикання й ураження струмом.',fix:'Прибери рідини від електроприладів, працюй із сухими руками, а воду став на окремий піднос.'},
+ strip:{t:'Перевантажений подовжувач',why:'П’ять приладів в одному подовжувачі дають великий сумарний струм (I = P / U). Проводи нагріваються, ізоляція плавиться.',fix:'Не перевищуй потужність, указану на подовжувачі. Потужні прилади вмикай у різні розетки.'},
+ wire:{t:'Пошкоджена ізоляція кабелю',why:'Оголені жили можуть торкнутися руки чи інших проводів. Це ураження струмом або коротке замикання.',fix:'Не користуйся таким кабелем. Вимкни з розетки, тримаючись за вилку, і повідом вчителя.'},
+ burner:{t:'Спиртівка біля паперу',why:'Папір легко займається від полум’я. Полум’я спиртівки погано видно при денному світлі.',fix:'Прибери горючі матеріали на безпечну відстань. Гасити спиртівку треба тільки ковпачком.'},
+ beaker:{t:'Гаряча склянка на краю стола',why:'Легко зачепити рукавом і вилити гарячу воду на себе чи сусіда. Скло може розбитися.',fix:'Став ємності далеко від краю, ближче до центру стола. Гарячу воду переносить дорослий.'},
+ bag:{t:'Рюкзак у проході',why:'Через нього легко перечепитися, а під час тривоги він заважає швидко вийти.',fix:'Речі зберігай у призначеному місці, прохід залишай вільним.'},
+ puddle:{t:'Калюжа й кабель на підлозі',why:'Вода на підлозі й кабель поруч: ризик ураження струмом та падіння.',fix:'Нічого не торкайся, відійди й негайно повідом вчителя. Спершу знеструмлюють, потім прибирають.'},
+ ext:{safe:1,t:'Вогнегасник на видному місці',why:'Правильно: він доступний, і до нього немає перешкод.',fix:'Користується ним лише дорослий або за вказівкою вчителя.'},
+ goggles:{safe:1,t:'Захисні окуляри на столі',why:'Правильно: окуляри під рукою. Їх одягають до початку роботи з рідинами, лазером чи пружинами.',fix:'Окуляри носимо, поки хтось у кімнаті працює з обладнанням.'},
+ kit:{safe:1,t:'Аптечка на стіні',why:'Правильно: аптечка на видному місці, поруч із виходом.',fix:'Про будь-яку травму одразу кажемо вчителеві, навіть дрібну.'}
+};
+var qs=$('#qsvg'),qfound={};
+function qRender(){var n=Object.keys(qfound).filter(function(k){return !HZ[k].safe}).length;
+  $('#qcount').innerHTML='Знайдено ризиків: <b>'+n+'</b> з 7';
+  $('#qchips').innerHTML=Object.keys(HZ).filter(function(k){return !HZ[k].safe}).map(function(k){return '<span class="chip'+(qfound[k]?' on':'')+'">'+(qfound[k]?HZ[k].t:'?')+'</span>'}).join('');
+  if(n===7)done('quest')}
+function qPick(id){var d=HZ[id];if(!d)return;
+  $('#qinfo').innerHTML='<h3>'+(d.safe?'Так і має бути: ':'Ризик: ')+d.t+'</h3><p class="why"><b>Чому так:</b> '+d.why+'</p><p class="why"><b>Що робити:</b> '+d.fix+'</p>';
+  if(!qfound[id]){qfound[id]=1;var g=$('[data-hz="'+id+'"]',qs),r=$('.hit',g);
+    var bx=+r.getAttribute('x')+ +r.getAttribute('width')-10,by=+r.getAttribute('y')+12;
+    var m=document.createElementNS(NS,'g');m.setAttribute('class','mark'+(d.safe?' okk':''));m.setAttribute('data-m',id);
+    m.innerHTML='<circle cx="'+bx+'" cy="'+by+'" r="13"/><path d="M'+(bx-6)+' '+by+'l4 5l8-10"/>';qs.appendChild(m)}
+  qRender()}
+qs.addEventListener('click',function(e){var g=e.target.closest('[data-hz]');if(g)qPick(g.dataset.hz)});
+qs.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){var g=e.target.closest('[data-hz]');if(g){e.preventDefault();qPick(g.dataset.hz)}}});
+$('#qhint').addEventListener('click',function(){var left=Object.keys(HZ).filter(function(k){return !HZ[k].safe&&!qfound[k]});
+  if(!left.length){toast('Усі ризики знайдено');return}
+  var id=left[Math.floor(Math.random()*left.length)],g=$('[data-hz="'+id+'"]',qs);g.classList.add('hint');setTimeout(function(){g.classList.remove('hint')},3000)});
+$('#qreset').addEventListener('click',function(){qfound={};$$('[data-m]',qs).forEach(function(m){m.remove()});
+  $('#qinfo').innerHTML='<h3>Що тут не так?</h3><p class="muted">Натисни на місце в кабінеті, яке здається небезпечним.</p>';qRender()});
+qRender();
+
+/* ================= МАЯТНИК ================= */
+var P={L:1,th0:20,g:9.81,speed:3,th:0,w:0,t:0,count:0,run:false,meas:false,tTrue:null,tShown:null,rows:[]};
+var pcv=$('#pcv'),pctx=setupCanvas(pcv,640,420),fcv=$('#pfit'),fctx=setupCanvas(fcv,640,300);
+function pInit(){P.th=P.th0*Math.PI/180;P.w=0;P.t=0;P.count=0;P.tTrue=null;P.tShown=null}
+function pStep(dt){var g=P.g,L=P.L,a=function(th){return -(g/L)*Math.sin(th)};var th=P.th,w=P.w;
+  var k1t=w,k1w=a(th),k2t=w+dt/2*k1w,k2w=a(th+dt/2*k1t),k3t=w+dt/2*k2w,k3w=a(th+dt/2*k2t),k4t=w+dt*k3w,k4w=a(th+dt*k3t);
+  P.th=th+dt/6*(k1t+2*k2t+2*k3t+k4t);P.w=w+dt/6*(k1w+2*k2w+2*k3w+k4w)}
+function pFinish(){P.tShown=Math.round((P.tTrue+gauss()*0.1)*100)/100;$('#pAdd').disabled=false;
+  $('#pSt').innerHTML='Секундомір показав <b>'+fmt(P.tShown)+' с</b> за 10 коливань. Натисни «Записати вимір».'}
+function tickPend(dt){
+  if(P.run){var rem=dt*P.speed,h=1/240;while(rem>1e-9){var s=Math.min(h,rem);rem-=s;var pw=P.w;pStep(s);P.t+=s;
+    if(P.meas&&pw>0&&P.w<=0){P.count++;if(P.count>=10){P.meas=false;P.tTrue=P.t;pFinish()}}}}
+  drawPend()}
+function drawPend(){var c=TH(),x=pctx,W=640,H=420,ox=W/2,oy=44,px=160;
+  x.clearRect(0,0,W,H);x.fillStyle=c.tint;x.fillRect(0,0,W,H);
+  x.strokeStyle=c.line;x.lineWidth=1;x.fillStyle=c.muted;x.font='11px JetBrains Mono, monospace';x.textAlign='left';
+  for(var m=0;m<=2.001;m+=0.1){var y=oy+m*px,big=Math.abs(m*2-Math.round(m*2))<1e-6;x.beginPath();x.moveTo(24,y);x.lineTo(big?44:36,y);x.stroke();if(big)x.fillText(fmt(m,1)+' м',50,y+4)}
+  x.beginPath();x.moveTo(24,oy);x.lineTo(24,oy+2*px);x.stroke();
+  x.setLineDash([5,5]);x.strokeStyle=c.muted;x.beginPath();x.moveTo(ox,oy);x.lineTo(ox,oy+2*px+10);x.stroke();
+  var a0=P.th0*Math.PI/180,r=P.L*px;x.beginPath();x.arc(ox,oy,r,Math.PI/2-a0,Math.PI/2+a0);x.stroke();x.setLineDash([]);
+  x.fillStyle=c.fg;x.fillRect(ox-70,oy-10,140,8);
+  var bx=ox+r*Math.sin(P.th),by=oy+r*Math.cos(P.th);
+  x.strokeStyle=c.fg;x.lineWidth=2;x.beginPath();x.moveTo(ox,oy);x.lineTo(bx,by);x.stroke();
+  x.fillStyle=c.sig;x.strokeStyle=c.fg;x.lineWidth=2.5;x.beginPath();x.arc(bx,by,14,0,7);x.fill();x.stroke();
+  x.fillStyle=c.fg;x.font='600 20px JetBrains Mono, monospace';x.textAlign='right';
+  var tt=P.tTrue!==null?P.tShown:P.t;x.fillText(fmt(tt)+' с',W-16,30);
+  x.font='12px Onest, sans-serif';x.fillStyle=c.muted;x.fillText('секундомір',W-16,48);
+  x.fillText('коливань: '+Math.min(P.count,10)+' з 10',W-16,66);x.textAlign='left';
+  x.fillText('g = '+fmt(P.g)+' м/с²',W-150,H-14)}
+function drawFit(){var c=TH(),x=fctx,W=640,H=300,ml=54,mb=36,mt=14,mr=16,pw=W-ml-mr,ph=H-mt-mb;
+  x.clearRect(0,0,W,H);x.fillStyle=c.tint;x.fillRect(0,0,W,H);
+  var g=P.g,exp2=4*Math.PI*Math.PI*2/g,ymax=Math.ceil(Math.max(exp2,Math.max.apply(null,P.rows.map(function(r){return r.T2}).concat([0])))*1.05);
+  var X=function(v){return ml+v/2*pw},Y=function(v){return mt+ph-v/ymax*ph};
+  x.font='11px JetBrains Mono, monospace';x.fillStyle=c.muted;x.strokeStyle=c.line;x.lineWidth=1;x.textAlign='right';
+  for(var i=0;i<=5;i++){var v=ymax*i/5,y=Y(v);x.beginPath();x.moveTo(ml,y);x.lineTo(W-mr,y);x.stroke();x.fillText(fmt(v,v<10?1:0),ml-6,y+4)}
+  x.textAlign='center';for(var j=0;j<=4;j++){var l=j*0.5;x.fillText(fmt(l,1),X(l),H-mb+16)}
+  x.fillText('L, м',ml+pw/2,H-6);x.save();x.translate(14,mt+ph/2);x.rotate(-Math.PI/2);x.fillText('T², с²',0,0);x.restore();
+  if(P.rows.length){var sxy=0,sxx=0;P.rows.forEach(function(r){sxy+=r.L*r.T2;sxx+=r.L*r.L});var k=sxy/sxx;
+    x.strokeStyle=c.info;x.lineWidth=2.5;x.beginPath();x.moveTo(X(0),Y(0));x.lineTo(X(2),Y(Math.min(k*2,ymax)));x.stroke()}
+  P.rows.forEach(function(r){x.fillStyle=c.sig;x.strokeStyle=c.fg;x.lineWidth=2;x.beginPath();x.arc(X(r.L),Y(r.T2),6,0,7);x.fill();x.stroke()})}
+function pRender(){var tb=$('#ptb');
+  tb.innerHTML=P.rows.length?P.rows.map(function(r,i){return '<tr><td class="num">'+fmt(r.L)+'</td><td class="num">'+fmt(r.t)+'</td><td class="num">'+fmt(r.T,3)+'</td><td class="num">'+fmt(r.T2,3)+'</td><td class="num">'+r.th+'°</td><td><button class="mini" data-del="'+i+'" aria-label="Видалити вимір" type="button">×</button></td></tr>'}).join(''):'<tr><td colspan="6" class="muted">Поки порожньо. Виконай вимір і натисни «Записати».</td></tr>';
+  var res=$('#pRes');
+  if(P.rows.length<2){res.className='callout';res.innerHTML='Для оцінки g потрібно хоча б два виміри. Формула: T² = (4π²/g)·L.'}
+  else{var sxy=0,sxx=0;P.rows.forEach(function(r){sxy+=r.L*r.T2;sxx+=r.L*r.L});var k=sxy/sxx,ge=4*Math.PI*Math.PI/k,dev=(ge-P.g)/P.g*100;
+    var big=P.rows.some(function(r){return r.th>15});
+    res.className='callout '+(Math.abs(dev)<10?'good':'warn');
+    res.innerHTML='Нахил графіка k = '+fmt(k,3)+' с²/м. Тоді <b>g ≈ 4π²/k = '+fmt(ge)+' м/с²</b>, відхилення від еталона '+fmt(dev,1)+' %.'+(big&&Math.abs(dev)>=5?' Великі кути збільшують період, тому g виходить меншим. Спробуй θ₀ ≤ 15°.':'');
+    var lens={};P.rows.forEach(function(r){lens[r.L.toFixed(2)]=1});
+    if(Object.keys(lens).length>=3&&Math.abs(dev)<10)done('pendulum')}
+  drawFit()}
+$('#pGo').addEventListener('click',function(){pInit();P.run=true;P.meas=true;$('#pAdd').disabled=true;$('#pSt').textContent='Йде вимір: рахуємо 10 повних коливань.'});
+$('#pStop').addEventListener('click',function(){pInit();P.run=false;P.meas=false;$('#pAdd').disabled=true;$('#pSt').textContent='Маятник у початковому положенні.'});
+$('#pAdd').addEventListener('click',function(){if(P.tShown==null)return;var T=P.tShown/10;P.rows.push({L:P.L,t:P.tShown,T:T,T2:T*T,th:P.th0});$('#pAdd').disabled=true;P.tShown=null;pRender();toast('Вимір записано')});
+$('#ptb').addEventListener('click',function(e){var b=e.target.closest('[data-del]');if(b){P.rows.splice(+b.dataset.del,1);pRender()}});
+bindRange('pL',function(v){P.L=v;pInit();P.run=false;P.meas=false;$('#pAdd').disabled=true},function(v){return fmt(v)+' м'});
+bindRange('pA',function(v){P.th0=v;pInit();P.run=false;P.meas=false;$('#pAdd').disabled=true},function(v){return v+'°'});
+$('#pG').addEventListener('change',function(e){P.g=parseFloat(e.target.value);P.rows=[];pInit();P.run=false;P.meas=false;$('#pAdd').disabled=true;pRender();toast('Таблицю очищено: інша планета')});
+$('#pS').addEventListener('change',function(e){P.speed=parseFloat(e.target.value)});
+pInit();pRender();
+
+/* ================= КОЛО Й АВТОМАТ ================= */
+var AP=[{id:'led',n:'LED-лампа',s:'LED',P:10},{id:'tv',n:'Телевізор',s:'ТВ',P:100},{id:'pc',n:'Комп’ютер',s:'ПК',P:300},{id:'mw',n:'Мікрохвильовка',s:'Мікрох.',P:1200},{id:'fen',n:'Фен',s:'Фен',P:1600},{id:'kt',n:'Чайник',s:'Чайник',P:2000}];
+var CAB={'0.75':{I:6,w:6},'1.5':{I:16,w:9},'2.5':{I:25,w:12}};
+var CC={on:{led:1,tv:1},br:16,cab:'1.5',T:25,h:0,tripped:false,fail:false,sawTrip:false,sawHot:false,off:0,msg:''};
+var cload=$('#cload');
+AP.forEach(function(a,i){var cx=215+i*75,g=document.createElementNS(NS,'g');g.setAttribute('class','load');g.setAttribute('tabindex','0');g.setAttribute('role','button');g.setAttribute('aria-label',a.n+', '+a.P+' Вт');g.dataset.id=a.id;
+  g.innerHTML='<line x1="'+cx+'" y1="155" x2="'+cx+'" y2="205" stroke="var(--fg)" stroke-width="2"/><rect x="'+(cx-33)+'" y="205" width="66" height="62" rx="8"/><text x="'+cx+'" y="232" text-anchor="middle" font-size="12" font-weight="700">'+a.s+'</text><text x="'+cx+'" y="252" text-anchor="middle" font-size="11" font-family="JetBrains Mono,monospace">'+a.P+' Вт</text>';
+  cload.appendChild(g)});
+function cToggle(id){CC.on[id]=CC.on[id]?0:1}
+cload.addEventListener('click',function(e){var g=e.target.closest('.load');if(g)cToggle(g.dataset.id)});
+cload.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){var g=e.target.closest('.load');if(g){e.preventDefault();cToggle(g.dataset.id)}}});
+function cabColor(T){var A=[123,135,152],B=[245,158,11],Cc=[229,37,47],f,a,b;
+  if(T<=70){f=clamp((T-25)/45,0,1);a=A;b=B}else{f=clamp((T-70)/40,0,1);a=B;b=Cc}
+  return 'rgb('+a.map(function(v,i){return Math.round(v+(b[i]-v)*f)}).join(',')+')'}
+function cRearm(){CC.tripped=false;CC.h=0;CC.T=25;CC.fail=false}
+$('#cRe').addEventListener('click',cRearm);
+$('#cBr').addEventListener('change',function(e){CC.br=parseInt(e.target.value,10);CC.h=0;CC.tripped=false;$('#brkLbl').textContent=CC.br+' А'});
+$('#cCab').addEventListener('change',function(e){CC.cab=e.target.value;cRearm();$('#cabLbl').textContent='подовжувач '+fmt(parseFloat(CC.cab),CC.cab==='1.5'?1:2)+' мм²'});
+var flowOff=0;
+function tickCirc(dt){var used=0;AP.forEach(function(a){if(CC.on[a.id])used+=a.P});
+  var I=CC.tripped?0:used/230,cab=CAB[CC.cab];
+  if(!CC.fail){var eq=25+45*Math.pow(I/cab.I,2);CC.T+=(eq-CC.T)*(1-Math.exp(-dt/5));if(CC.T>=71)CC.sawHot=true;if(CC.T>=95)CC.fail=true}
+  if(!CC.tripped&&!CC.fail){var r=I/CC.br;if(r>=6)CC.h=1;else if(r>1.05)CC.h+=dt*0.9*(r*r-1);else CC.h=Math.max(0,CC.h-dt*0.3);
+    if(CC.h>=1){CC.h=1;CC.tripped=true;if(CC.T<80)CC.sawTrip=true}}
+  var cb=$('#cab');cb.setAttribute('stroke',cabColor(CC.T));cb.setAttribute('stroke-width',cab.w);
+  var fl=$('#flow');fl.setAttribute('stroke-width',Math.max(2,cab.w/3));fl.setAttribute('opacity',I>0?0.95:0);flowOff-=I*dt*40;fl.setAttribute('stroke-dashoffset',flowOff);
+  $('#lever').setAttribute('transform',CC.tripped?'rotate(55 157 150)':'');
+  $('#fire').hidden=!CC.fail;
+  $$('.load',cload).forEach(function(g){var on=!!CC.on[g.dataset.id];g.classList.toggle('on',on);g.setAttribute('aria-pressed',on?'true':'false')});
+  $('#gI').textContent=fmt(I,1)+' А ('+used+' Вт)';$('#bI').style.width=clamp(I/30*100,0,100)+'%';
+  $('#mkBr').style.left=(CC.br/30*100)+'%';$('#mkCab').style.left=(cab.I/30*100)+'%';$('#mkCab').style.background='var(--danger)';
+  $('#gT').textContent=Math.round(CC.T)+' °C';$('#bT').style.width=clamp((CC.T-25)/100*100,0,100)+'%';$('#mkT').style.left=((70-25)/100*100)+'%';
+  $('#gH').textContent=Math.round(CC.h*100)+' %';$('#bH').style.width=(CC.h*100)+'%';
+  var msg,cls='callout';
+  if(CC.fail){msg='Ізоляція кабелю зруйнувалась, це вже пожежна небезпека. Автомат не допоміг: струм '+fmt(I,1)+' А менший за його поріг '+CC.br+' А, а кабель витримує лише близько '+cab.I+' А.';cls+=' warn'}
+  else if(CC.tripped){msg='Автомат спрацював і вимкнув коло. Струм перевищив '+CC.br+' А. Вимкни частину приладів і натисни «Увімкнути автомат».';cls+=' good'}
+  else if(I>cab.I){msg='Небезпечно: струм '+fmt(I,1)+' А більший за допустимий для кабелю ('+cab.I+' А), а автомат на '+CC.br+' А ще не спрацьовує. Кабель гріється.';cls+=' warn'}
+  else if(CC.br>cab.I){msg='Хибний захист: автомат на '+CC.br+' А не захищає кабель на '+cab.I+' А. Доки струм малий, усе гаразд, але подовжувач незахищений.';cls+=' warn'}
+  else{msg='Режим безпечний: струм '+fmt(I,1)+' А менший за поріг кабелю ('+cab.I+' А), автомат стоїть правильно.';cls+=' good'}
+  if(msg!==CC.msg){CC.msg=msg;var v=$('#cVerd');v.className=cls;v.textContent=msg}
+  $('#m1').classList.toggle('ok',CC.sawTrip);$('#m2').classList.toggle('ok',CC.sawHot);
+  if(CC.sawTrip&&CC.sawHot)done('circuit')}
+
+/* ================= ЗАЛОМЛЕННЯ ================= */
+var MED=[['Повітря',1.00],['Вода',1.33],['Етанол',1.36],['Гліцерин',1.47],['Скло',1.50],['Алмаз',2.42]];
+var lcv=$('#lcv'),lctx=setupCanvas(lcv,640,400);
+var LS={mode:'free',n1:1.5,n2:1.0,a:50,hidden:1.33,rows:[]};
+LS.hidden=Math.round((1.30+Math.random()*0.30)*100)/100;
+['ln1','ln2'].forEach(function(id){$('#'+id).innerHTML=MED.map(function(m,i){return '<option value="'+i+'">'+m[0]+', n = '+fmt(m[1])+'</option>'}).join('')});
+$('#ln1').value='4';$('#ln2').value='0';
+function lNew(){LS.hidden=Math.round((1.30+Math.random()*0.30)*100)/100;LS.rows=[];lTable();$('#lMsg').textContent='Нова рідина готова.'}
+function lTable(){var tb=$('#ltb');tb.innerHTML=LS.rows.length?LS.rows.map(function(r){return '<tr><td class="num">'+r.a+'°</td><td class="num">'+r.b+'°</td><td class="num">'+fmt(r.sa,3)+'</td><td class="num">'+fmt(r.sb,3)+'</td><td class="num">'+fmt(r.n,3)+'</td></tr>'}).join(''):'<tr><td colspan="5" class="muted">Постав кут і натисни «Записати вимір».</td></tr>'}
+function lMedia(){if(LS.mode==='free')return{n1:parseFloat(MED[+$('#ln1').value][1]),n2:parseFloat(MED[+$('#ln2').value][1]),m1:MED[+$('#ln1').value][0],m2:MED[+$('#ln2').value][0]};
+  return{n1:1,n2:LS.hidden,m1:'Повітря',m2:'Невідома рідина (n = ?)'}}
+function drawLight(){var c=TH(),x=lctx,W=640,H=400,cx=320,cy=200,R=180,md=lMedia(),n1=md.n1,n2=md.n2;
+  x.clearRect(0,0,W,H);x.fillStyle=c.tint;x.fillRect(0,0,W,H);
+  x.save();x.fillStyle=c.info;x.globalAlpha=Math.min(.5,.08+.1*(n1-1));x.fillRect(0,0,W,cy);x.globalAlpha=Math.min(.55,.08+.1*(n2-1));x.fillRect(0,cy,W,H-cy);x.restore();
+  x.strokeStyle=c.fg;x.lineWidth=2;x.beginPath();x.moveTo(0,cy);x.lineTo(W,cy);x.stroke();
+  x.setLineDash([6,6]);x.strokeStyle=c.muted;x.lineWidth=1.2;x.beginPath();x.moveTo(cx,16);x.lineTo(cx,H-16);x.stroke();x.setLineDash([]);
+  x.fillStyle=c.fg;x.font='600 13px Onest, sans-serif';x.textAlign='left';x.fillText(md.m1+(LS.mode==='free'?', n = '+fmt(n1):''),14,24);x.fillText(md.m2+(LS.mode==='free'?', n = '+fmt(n2):''),14,H-14);
+  var a=LS.a*Math.PI/180,s=n1*Math.sin(a)/n2,tir=s>1,b=Math.asin(Math.min(1,s));
+  var sx=cx-R*Math.sin(a),sy=cy-R*Math.cos(a);
+  x.save();x.translate(sx,sy);x.rotate(Math.atan2(Math.cos(a),Math.sin(a)));x.fillStyle=c.fg;x.fillRect(-46,-7,46,14);x.fillStyle=c.sig;x.fillRect(-8,-7,8,14);x.restore();
+  x.lineCap='round';x.strokeStyle=c.danger;x.lineWidth=3.5;x.beginPath();x.moveTo(sx,sy);x.lineTo(cx,cy);x.stroke();
+  x.save();x.globalAlpha=tir?1:.35;x.lineWidth=tir?4:2.5;x.beginPath();x.moveTo(cx,cy);x.lineTo(cx+R*Math.sin(a),cy-R*Math.cos(a));x.stroke();x.restore();
+  if(!tir){x.lineWidth=3.5;x.beginPath();x.moveTo(cx,cy);x.lineTo(cx+R*Math.sin(b),cy+R*Math.cos(b));x.stroke()}
+  x.lineWidth=1.8;x.strokeStyle=c.fg;x.beginPath();x.arc(cx,cy,64,-Math.PI/2-a,-Math.PI/2);x.stroke();
+  if(!tir){x.beginPath();x.arc(cx,cy,78,Math.PI/2-b,Math.PI/2);x.stroke()}
+  x.font='600 13px JetBrains Mono, monospace';x.fillStyle=c.fg;x.textAlign='center';
+  x.fillText('α',cx-Math.sin(a/2)*86,cy-Math.cos(a/2)*86);
+  if(!tir)x.fillText('β',cx+Math.sin(b/2)*100,cy+Math.cos(b/2)*100+4);
+  else{x.fillStyle=c.danger;x.font='700 15px Onest, sans-serif';x.fillText('Повне внутрішнє відбиття',cx+130,cy+60)}
+  x.lineCap='butt';
+  var out=$('#lOut'),sa=Math.sin(a);
+  if(LS.mode==='free'){var t='α = '+fmt(LS.a,0)+'°<br>'+(tir?'β: заломленого променя немає':'β = '+fmt(b*180/Math.PI,1)+'°');
+    if(n1>n2)t+='<br>Граничний кут: '+fmt(Math.asin(n2/n1)*180/Math.PI,1)+'°';out.innerHTML=t}
+  else{out.innerHTML='α = '+fmt(LS.a,0)+'°<br>β = '+Math.round(b*180/Math.PI)+'° (транспортир)'}}
+function lBeta(){var a=LS.a*Math.PI/180;return Math.round(Math.asin(Math.sin(a)/LS.hidden)*180/Math.PI)}
+bindRange('lA',function(v){LS.a=v;drawLight()},function(v){return v+'°'});
+['ln1','ln2'].forEach(function(id){$('#'+id).addEventListener('change',drawLight)});
+$('#lTir').addEventListener('click',function(){$('#ln1').value='4';$('#ln2').value='0';$('#lA').value=55;LS.a=55;$('#lAo').textContent='55°';drawLight()});
+function lMode(m){LS.mode=m;$('#lFree').style.display=m==='free'?'grid':'none';$('#lMys').style.display=m==='mys'?'grid':'none';
+  $('#lmFree').className='btn'+(m==='free'?'':' ghost');$('#lmMys').className='btn'+(m==='mys'?'':' ghost');if(m==='mys'&&!LS.rows.length)lTable();drawLight()}
+$('#lmFree').addEventListener('click',function(){lMode('free')});$('#lmMys').addEventListener('click',function(){lMode('mys')});
+$('#lNew').addEventListener('click',function(){lNew();drawLight()});
+$('#lRec').addEventListener('click',function(){if(LS.a<5){toast('Поставь кут більший за 5°');return}var b=lBeta();if(b<=0){toast('Кут β надто малий для виміру');return}
+  var sa=Math.sin(LS.a*Math.PI/180),sb=Math.sin(b*Math.PI/180);LS.rows.push({a:LS.a,b:b,sa:sa,sb:sb,n:sa/sb});lTable()});
+$('#lCheck').addEventListener('click',function(){var v=parseFloat(String($('#lGuess').value).replace(',','.'));var m=$('#lMsg');
+  if(!isFinite(v)){m.textContent='Введи число, наприклад 1,42.';return}
+  if(Math.abs(v-LS.hidden)<=0.04){m.innerHTML='<b class="ok">Правильно.</b> Це була рідина з n = '+fmt(LS.hidden)+'. Усереднення кількох вимірів зменшує похибку округлення.';done('light')}
+  else m.innerHTML='<b class="bad">Ще ні.</b> Зроби кілька вимірів при різних α, знайди n = sin α / sin β і візьми середнє.'});
+lTable();
+
+/* ================= ГАРЯЧА ВОДА ================= */
+var hcv=$('#hcv'),hctx=setupCanvas(hcv,640,300),ccv=$('#ccv'),cctx=setupCanvas(ccv,640,300);
+var HS={m1:250,T1:70,m2:250,T2:15};
+var BT=[[49,600],[54,30],[60,5],[65,2],[71,1]];
+function burn(T){if(T<49)return null;if(T>=71)return 1;for(var i=0;i<BT.length-1;i++){var a=BT[i][0],ta=BT[i][1],b=BT[i+1][0],tb=BT[i+1][1];if(T<=b){var f=(T-a)/(b-a);return Math.exp(Math.log(ta)+f*(Math.log(tb)-Math.log(ta)))}}return 1}
+function ftime(t){return t>=60?Math.round(t/60)+' хв':Math.max(1,Math.round(t))+' с'}
+function beaker(x,c,cx,top,w,h,mass,T,l1,l2){var fill=Math.max(0.06,mass/500)*h*0.92,hue=210-210*clamp(T,0,100)/100;
+  x.save();x.globalAlpha=.88;x.fillStyle='hsl('+hue+',80%,55%)';x.fillRect(cx-w/2+2,top+h-fill,w-4,fill-2);x.restore();
+  x.strokeStyle=c.fg;x.lineWidth=3;x.lineJoin='round';x.beginPath();x.moveTo(cx-w/2,top);x.lineTo(cx-w/2,top+h);x.lineTo(cx+w/2,top+h);x.lineTo(cx+w/2,top);x.stroke();
+  x.fillStyle=c.fg;x.textAlign='center';x.font='600 14px JetBrains Mono, monospace';x.fillText(l1,cx,top-24);x.font='12px Onest, sans-serif';x.fillStyle=c.muted;x.fillText(l2,cx,top-8)}
+function drawHeat(){var c=TH(),x=hctx,W=640,H=300;x.clearRect(0,0,W,H);x.fillStyle=c.tint;x.fillRect(0,0,W,H);
+  var Tf=(HS.m1*HS.T1+HS.m2*HS.T2)/(HS.m1+HS.m2);
+  beaker(x,c,110,70,110,170,HS.m1,HS.T1,HS.T1+' °C','гаряча, '+HS.m1+' г');beaker(x,c,300,70,110,170,HS.m2,HS.T2,HS.T2+' °C','холодна, '+HS.m2+' г');
+  beaker(x,c,490,70,110,170,HS.m1+HS.m2,Tf,fmt(Tf,1)+' °C','суміш, '+(HS.m1+HS.m2)+' г');
+  x.fillStyle=c.fg;x.font='700 28px Onest, sans-serif';x.textAlign='center';x.fillText('+',205,170);x.fillText('=',395,170);
+  var res=$('#hRes'),t=burn(Tf),cls,txt;
+  if(Tf<=42){cls='good';txt='Суміш <b>'+fmt(Tf,1)+' °C</b>. Безпечно для рук.'}
+  else if(Tf<49){cls='';txt='Суміш <b>'+fmt(Tf,1)+' °C</b>. Дуже тепла: довго тримати руки не варто.'}
+  else{cls='warn';txt='Суміш <b>'+fmt(Tf,1)+' °C</b>. Небезпечно: опік приблизно за '+(Tf>=71?'1 с або швидше':ftime(t))+'.'}
+  res.className='callout '+cls;res.innerHTML=txt+'<br><span class="muted">T = (m₁T₁ + m₂T₂) / (m₁ + m₂), без втрат тепла.</span>';
+  if(Tf>=36&&Tf<=42&&HS.m1+HS.m2>=200)done('heat')}
+var KS={T0:90,Ta:22};var CK=[['Відкрита чашка',0.039,'danger'],['Чашка з кришкою',0.020,'info'],['Термос',0.004,'safe']];
+function tto(T0,Ta,k,Tt){if(T0<=Tt)return 0;return Math.log((T0-Ta)/(Tt-Ta))/k}
+function drawCool(){var c=TH(),x=cctx,W=640,H=300,ml=46,mb=34,mt=14,mr=14,pw=W-ml-mr,ph=H-mt-mb;
+  x.clearRect(0,0,W,H);x.fillStyle=c.tint;x.fillRect(0,0,W,H);
+  var X=function(t){return ml+t/60*pw},Y=function(T){return mt+ph-(T-15)/90*ph};
+  x.font='11px JetBrains Mono, monospace';x.fillStyle=c.muted;x.strokeStyle=c.line;x.lineWidth=1;x.textAlign='right';
+  for(var T=15;T<=105;T+=15){x.beginPath();x.moveTo(ml,Y(T));x.lineTo(W-mr,Y(T));x.stroke();x.fillText(T,ml-6,Y(T)+4)}
+  x.textAlign='center';for(var t=0;t<=60;t+=10){x.fillText(t,X(t),H-mb+16)}x.fillText('хвилини',ml+pw/2,H-6);
+  [[49,'49 °C'],[60,'60 °C']].forEach(function(l){x.save();x.setLineDash([6,5]);x.strokeStyle=c.danger;x.lineWidth=1.6;x.beginPath();x.moveTo(ml,Y(l[0]));x.lineTo(W-mr,Y(l[0]));x.stroke();x.restore();x.fillStyle=c.danger;x.textAlign='right';x.fillText(l[1],W-mr-4,Y(l[0])-4)});
+  CK.forEach(function(k){x.strokeStyle=c[k[2]];x.lineWidth=3;x.beginPath();for(var tm=0;tm<=60;tm+=1){var v=KS.Ta+(KS.T0-KS.Ta)*Math.exp(-k[1]*tm);if(tm===0)x.moveTo(X(tm),Y(v));else x.lineTo(X(tm),Y(v))}x.stroke()});
+  $('#kLeg').innerHTML=CK.map(function(k){var tt=tto(KS.T0,KS.Ta,k[1],49);var s=KS.T0<=49?'вода й так нижча за 49 °C':(tt>120?(tt/60).toFixed(1).replace('.',',')+' год':Math.round(tt)+' хв');
+    return '<div style="display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:var(--'+k[2]+');flex:none"></span><span><b>'+k[0]+'</b>: до 49 °C за '+s+'</span></div>'}).join('')}
+bindRange('hM1',function(v){HS.m1=v;drawHeat()},function(v){return v+' г'});bindRange('hT1',function(v){HS.T1=v;drawHeat()},function(v){return v+' °C'});
+bindRange('hM2',function(v){HS.m2=v;drawHeat()},function(v){return v+' г'});bindRange('hT2',function(v){HS.T2=v;drawHeat()},function(v){return v+' °C'});
+bindRange('kT0',function(v){KS.T0=v;drawCool()},function(v){return v+' °C'});bindRange('kTa',function(v){KS.Ta=v;drawCool()},function(v){return v+' °C'});
+
+/* ================= ДОСЛІДЖЕННЯ ================= */
+var RS=[
+ {id:'r1',t:'Маятник на кухні',q:'Як період коливань залежить від довжини нитки?',kit:'нитка, гайка або ключ, лінійка, секундомір на телефоні',safe:'Нитку закріпи надійно, вантаж не важчий за 100 г, кут відхилення до 15°, не стій у площині коливань.',plan:['Виміряй час 10 коливань для 4–5 довжин нитки.','Обчисли T і T².','Побудуй графік T²(L) і знайди g. Порівняй із віртуальною станцією.'],link:'#pendulum'},
+ {id:'r2',t:'Хто охолоджує воду повільніше',q:'Як кришка й ізоляція впливають на швидкість охолодження води?',kit:'три однакові ємності (чашка, чашка з кришкою, термос), харчовий термометр, годинник, тепла вода до 60 °C',safe:'Воду наливає дорослий, не використовуємо окріп, ємності стоять далеко від краю, над парою не нахиляємось.',plan:['Налий однакову кількість води у три ємності.','Записуй температуру щохвилини протягом 20 хвилин.','Побудуй три криві й порівняй їх із моделлю Ньютона.'],link:'#heat'},
+ {id:'r3',t:'Уявна глибина склянки',q:'Наскільки мілкішим здається дно склянки з водою?',kit:'прозора склянка, вода, монета, лінійка',safe:'Склянку ставимо подалі від краю, тріснуте скло не використовуємо, воду не п’ємо.',plan:['Виміряй справжню висоту води h.','Знайди уявну глибину h′ за відміткою лінійки при погляді збоку.','Порівняй відношення h / h′ з n води ≈ 1,33.'],link:'#light'},
+ {id:'r4',t:'Енергоаудит розетки',q:'Який струм споживають прилади однієї кімнати, коли працюють разом?',kit:'аркуш, ручка, калькулятор, паспортні таблички вимкнених приладів',safe:'Нічого не вмикаємо й не розбираємо, щиток не торкаємо. Читаємо лише таблички приладів, відключених від мережі.',plan:['Випиши потужності 5–6 приладів.','Обчисли I = P / 230 для кожного й для групи.','Порівняй із 10 А та 16 А. Які прилади не варто вмикати разом?'],link:'#circuit'}];
+var DKEY='stem-safe-drafts',drafts={};try{drafts=JSON.parse(localStorage.getItem(DKEY)||'{}')||{}}catch(e){drafts={}}
+var saveD=function(){try{localStorage.setItem(DKEY,JSON.stringify(drafts))}catch(e){}};
+$('#rcards').innerHTML=RS.map(function(r){return '<article class="rcard"><h3>'+r.t+'</h3><p>'+r.q+'</p><dl>'
+ +'<div><dt>Обладнання</dt><dd>'+r.kit+'</dd></div><div><dt>Безпека</dt><dd>'+r.safe+'</dd></div><div><dt>План</dt><dd><ol>'+r.plan.map(function(p){return '<li>'+p+'</li>'}).join('')+'</ol></dd></div></dl>'
+ +'<p><a href="'+r.link+'">Спершу пройти віртуальну станцію</a></p>'
+ +'<div><label for="'+r.id+'h">Гіпотеза</label><textarea id="'+r.id+'h" data-k="'+r.id+'.h" placeholder="Я припускаю, що…"></textarea></div>'
+ +'<div><label for="'+r.id+'d">Результати вимірів</label><textarea id="'+r.id+'d" data-k="'+r.id+'.d" placeholder="Числа, одиниці, похибка"></textarea></div>'
+ +'<div><label for="'+r.id+'c">Висновок</label><textarea id="'+r.id+'c" data-k="'+r.id+'.c" placeholder="Гіпотеза підтвердилась чи ні, і чому"></textarea></div>'
+ +'<div class="row"><button class="btn" type="button" data-copy="'+r.id+'">Скопіювати звіт</button></div><textarea id="'+r.id+'o" readonly hidden aria-label="Текст звіту"></textarea></article>'}).join('');
+$$('#rcards textarea[data-k]').forEach(function(t){t.value=drafts[t.dataset.k]||'';t.addEventListener('input',function(){drafts[t.dataset.k]=t.value;saveD()})});
+$('#rcards').addEventListener('click',function(e){var b=e.target.closest('[data-copy]');if(!b)return;var r=RS.filter(function(z){return z.id===b.dataset.copy})[0];
+  var h=$('#'+r.id+'h').value.trim(),d=$('#'+r.id+'d').value.trim(),c=$('#'+r.id+'c').value.trim();
+  if(!h||!c){toast('Заповни гіпотезу й висновок');return}
+  var txt='ЗВІТ ПРО ДОСЛІДЖЕННЯ\nТема: '+r.t+'\nПитання: '+r.q+'\nОбладнання: '+r.kit+'\nБезпека: '+r.safe+'\nГіпотеза: '+h+'\nРезультати: '+(d||'—')+'\nВисновок: '+c;
+  var ta=$('#'+r.id+'o');var fb=function(){ta.hidden=false;ta.value=txt;ta.rows=8;ta.focus();ta.select();toast('Виділи текст і скопіюй вручну')};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){toast('Звіт скопійовано')}).catch(fb)}else fb();
+  done('research')});
+
+/* ================= СИМУЛЯЦІЇ ТА ВІДЕО ================= */
+var PH=[
+ {t:'Маятникова лабораторія',u:'https://phet.colorado.edu/uk/simulations/pendulum-lab',g:'9–11',q:['Як зміниться період, якщо подвоїти масу?','Як залежить період від довжини? Перевір на Місяці.','Як відрізняється рух із тертям і без?']},
+ {t:'Конструктор електричних кіл (постійний струм)',u:'https://phet.colorado.edu/uk/simulations/circuit-construction-kit-dc',g:'8–10',q:['Збери послідовне й паралельне коло з двома лампами. Де яскравіше?','Що показує амперметр у кожному випадку?','Що станеться при короткому замиканні?']},
+ {t:'Заломлення світла',u:'https://phet.colorado.edu/uk/simulations/bending-light',g:'8–10',q:['Як змінюється кут β при збільшенні n?','Знайди кут повного внутрішнього відбиття для скла.','Чи залежить заломлення від кольору променя?']},
+ {t:'Форми енергії та їх перетворення',u:'https://phet.colorado.edu/uk/simulations/energy-forms-and-changes',g:'8–9',q:['Що нагріється швидше: вода чи оливкова олія?','Куди йде енергія, коли чайник гріє воду?','Як ізоляція змінює швидкість охолодження?']},
+ {t:'Закон Ома',u:'https://phet.colorado.edu/uk/simulations/ohms-law',g:'8–9',q:['Як змінюється струм при збільшенні напруги?','А при збільшенні опору?','За яких значень струм стає надто великим для людини?']}];
+$('#phet').innerHTML=PH.map(function(p){return '<article class="link-card"><div class="chip" style="justify-self:start">'+p.g+' класи</div><h3>'+p.t+'</h3><ul>'+p.q.map(function(q){return '<li>'+q+'</li>'}).join('')+'</ul><a class="btn" style="text-decoration:none;justify-self:start" href="'+p.u+'" target="_blank" rel="noopener">Відкрити симуляцію</a></article>'}).join('');
+var VD=[['Техніка безпеки в кабінеті фізики','техніка безпеки кабінет фізики школа'],['Електробезпека для школярів','електробезпека для школярів відео'],['Дослід: математичний маятник','математичний маятник дослід фізика'],['Заломлення світла вдома','заломлення світла дослід вдома'],['Опіки: перша допомога','опіки перша допомога для дітей відео']];
+$('#vids').innerHTML=VD.map(function(v){return '<article class="link-card"><h3>'+v[0]+'</h3><p class="muted" style="font-size:14px">Пошук відео за темою</p><a class="btn ghost" style="text-decoration:none;justify-self:start" href="https://www.youtube.com/results?search_query='+encodeURIComponent(v[1])+'" target="_blank" rel="noopener">Знайти відео</a></article>'}).join('');
+
+/* ================= ТЕСТ ================= */
+var Q=[
+ {q:'Лабораторні роботи з електрики в школі виконують із джерел…',o:['мережі 230 В','низької напруги (зазвичай 4–12 В, не більше 42 В)','напруги 380 В'],a:1,e:'Низька напруга зменшує ризик ураження. Мережеву розетку й кабелі в таких роботах не використовують.'},
+ {q:'Чайник потужністю 2000 Вт увімкнено в мережу 230 В. Який струм він споживає?',o:['≈ 0,12 А','≈ 8,7 А','≈ 460 А'],a:1,e:'I = P / U = 2000 / 230 ≈ 8,7 А.'},
+ {q:'Автомат на 16 А стоїть перед подовжувачем на 6 А. Що найімовірніше станеться при струмі 9 А?',o:['Автомат одразу вимкне струм','Подовжувач перегріється, а автомат не спрацює','Нічого не зміниться'],a:1,e:'Автомат має захищати найслабшу ланку. 9 А менше за 16 А, тому автомат мовчить, а кабель на 6 А нагрівається.'},
+ {q:'Довжину нитки маятника збільшили вчетверо. Як зміниться період малих коливань?',o:['Збільшиться вдвічі','Збільшиться вчетверо','Не зміниться'],a:0,e:'T = 2π√(L/g), тому T ∝ √L, а √4 = 2.'},
+ {q:'Що заборонено робити з лазерною указкою?',o:['Світити на білу стіну','Спрямовувати промінь в очі або на дзеркальну поверхню в бік людей','Вимикати її після досліду'],a:1,e:'Навіть слабкий промінь може пошкодити сітківку. Відбитий промінь так само небезпечний.'},
+ {q:'Вода має 60 °C. Приблизно за який час можливий серйозний опік шкіри?',o:['≈ 5 с','≈ 10 хв','Опіку не буде'],a:0,e:'За орієнтовними даними при 60 °C це кілька секунд, а при 49 °C приблизно десять хвилин.'},
+ {q:'Спиртівка спалахнула біля паперу. Перша дія?',o:['Залити водою з чайника','Накрити полум’я ковпачком чи щільною тканиною й повідомити вчителя','Винести спиртівку з класу'],a:1,e:'Накриття перекриває доступ кисню. Носити відкрите полум’я кабінетом не можна.'},
+ {q:'Показник заломлення скла 1,5. З якого кута падіння промінь зі скла в повітря повністю відбивається?',o:['Приблизно від 42°','Приблизно від 60°','Лише при 90°'],a:0,e:'sin α₀ = 1 / 1,5 ≈ 0,667, тому α₀ ≈ 42°.'},
+ {q:'Змішали 200 г води при 80 °C і 200 г води при 20 °C. Яка температура суміші без втрат тепла?',o:['40 °C','50 °C','100 °C'],a:1,e:'T = (200·80 + 200·20) / 400 = 50 °C. Для шкіри це вже небезпечно.'}];
+var tState=[];
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function tBuild(){tState=Q.map(function(z){var idx=shuffle(z.o.map(function(_,i){return i}));return{idx:idx}});
+  $('#tq').innerHTML=Q.map(function(z,qi){return '<div class="q"><fieldset><legend>'+(qi+1)+'. '+z.q+'</legend>'+tState[qi].idx.map(function(oi,k){return '<label><input type="radio" name="q'+qi+'" value="'+oi+'"><span>'+z.o[oi]+'</span></label>'}).join('')+'<div class="fb" id="fb'+qi+'" aria-live="polite"></div></fieldset></div>'}).join('');
+  $('#tRes').hidden=true;$('#tBadge').hidden=true}
+$('#tGo').addEventListener('click',function(){var score=0,ans=0;
+  Q.forEach(function(z,qi){var ch=$('input[name="q'+qi+'"]:checked'),fb=$('#fb'+qi);
+    if(!ch){fb.innerHTML='<span class="muted">Немає відповіді.</span>';return}ans++;var ok=parseInt(ch.value,10)===z.a;if(ok)score++;
+    fb.innerHTML=(ok?'<b class="ok">Правильно.</b> ':'<b class="bad">Неправильно.</b> ')+z.e});
+  var r=$('#tRes');r.hidden=false;
+  if(ans<Q.length){r.className='callout';r.textContent='Відповіли на '+ans+' з '+Q.length+'. Результат поки неповний: '+score+' правильних.'}
+  else{r.className='callout '+(score>=7?'good':'warn');r.textContent='Результат: '+score+' з '+Q.length+(score>=7?'. Бейдж отримано.':'. Для бейджа потрібно 7. Перечитай пояснення й спробуй ще раз.')}
+  if(ans===Q.length&&score>=7){$('#tBadge').hidden=false;$('#tSc').textContent='Результат тесту: '+score+' з '+Q.length;done('test')}});
+$('#tRe').addEventListener('click',tBuild);
+$('#tName').addEventListener('input',function(e){$('#tNm').textContent=e.target.value.trim()||'Безпечний експериментатор'});
+tBuild();
+
+/* ================= цикл, тема, старт ================= */
+var ticks={pendulum:tickPend,circuit:tickCirc},last=performance.now();
+function frame(t){var dt=Math.min(0.05,(t-last)/1000);last=t;if(ticks[cur])ticks[cur](dt);requestAnimationFrame(frame)}
+function redrawStatic(){if(cur==='light')drawLight();if(cur==='heat'){drawHeat();drawCool()}if(cur==='pendulum')drawFit()}
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',redrawStatic)}catch(e){}
+try{new MutationObserver(redrawStatic).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']})}catch(e){}
+renderStamps();route();requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
